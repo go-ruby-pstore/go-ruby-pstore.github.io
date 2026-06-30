@@ -1,0 +1,31 @@
+baseURL = "https://go-ruby-pstore.github.io/"
+title = "go-ruby-pstore"
+disableKinds = ["taxonomy", "term", "RSS", "sitemap", "404"]
+
+[markup.goldmark.renderer]
+  unsafe = true
+
+[[params.phases]]
+  name = "Transaction state machine"
+  status = "ready"
+  blurb = "`Transaction(readOnly, body)` runs PStore's load → body → commit/abort machine over a Hash table: a read-write body that returns normally commits, refusing a nested transaction and raising outside one."
+[[params.phases]]
+  name = "Commit on normal exit"
+  status = "ready"
+  blurb = "A read-write transaction whose body returns normally Marshal-dumps the table back through the backend — but only if the bytes changed (MRI's checksum/size guard); an unchanged transaction performs no write."
+[[params.phases]]
+  name = "Commit / Abort early exit"
+  status = "ready"
+  blurb = "Return `t.Commit()` or `t.Abort()` from the body to exit it early (MRI's `throw :pstore_abort_transaction`): `Abort` discards every change, `Commit` persists the work so far, and the body does not continue past either."
+[[params.phases]]
+  name = "Read-only transactions & error taxonomy"
+  status = "ready"
+  blurb = "In a read-only transaction `Set` and `Delete` raise `PStore::Error` and the backend is never written; a single `*pstore.Error` carries MRI's exact messages — `\"not in transaction\"`, `\"in read-only transaction\"`, `\"nested transaction\"`, and the rest."
+[[params.phases]]
+  name = "MRI-compatible on-disk Marshal"
+  status = "ready"
+  blurb = "The table is `Marshal.dump` / `load`ed via go-ruby-marshal, so a file this engine commits is read back unchanged by MRI's PStore, and a real `ruby -rpstore` file loads here — byte-compatible both directions."
+[[params.phases]]
+  name = "Differential oracle & coverage"
+  status = "ready"
+  blurb = "Real `ruby -rpstore` files loaded here, the table round-tripped both directions (MRI→Go and Go→MRI), and MRI's own commit / abort / read-only sequence replayed and asserted; 100% coverage, gofmt + go vet clean, green across all six 64-bit Go arches and three OSes."
